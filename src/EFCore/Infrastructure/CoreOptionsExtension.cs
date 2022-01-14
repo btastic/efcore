@@ -32,7 +32,7 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
     public class CoreOptionsExtension : IDbContextOptionsExtension
     {
         private IServiceProvider? _internalServiceProvider;
-        private IServiceProvider? _applicationServiceProvider;
+        private WeakReference<IServiceProvider>? _applicationServiceProvider;
         private IModel? _model;
         private ILoggerFactory? _loggerFactory;
         private IDbContextLogger? _contextLogger;
@@ -72,7 +72,7 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         protected CoreOptionsExtension(CoreOptionsExtension copyFrom)
         {
             _internalServiceProvider = copyFrom.InternalServiceProvider;
-            _applicationServiceProvider = copyFrom.ApplicationServiceProvider;
+            _applicationServiceProvider = copyFrom._applicationServiceProvider;
             _model = copyFrom.Model;
             _loggerFactory = copyFrom.LoggerFactory;
             _contextLogger = copyFrom.DbContextLogger;
@@ -131,7 +131,9 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         {
             var clone = Clone();
 
-            clone._applicationServiceProvider = applicationServiceProvider;
+            clone._applicationServiceProvider = applicationServiceProvider == null
+                ? null
+                : new WeakReference<IServiceProvider>(applicationServiceProvider);
 
             return clone;
         }
@@ -412,7 +414,10 @@ namespace Microsoft.EntityFrameworkCore.Infrastructure
         ///     The option set from the <see cref="DbContextOptionsBuilder.UseApplicationServiceProvider" /> method.
         /// </summary>
         public virtual IServiceProvider? ApplicationServiceProvider
-            => _applicationServiceProvider;
+            => _applicationServiceProvider == null
+                || !_applicationServiceProvider.TryGetTarget(out var provider)
+                ? null
+                : provider;
 
         /// <summary>
         ///     The options set from the <see cref="DbContextOptionsBuilder.ConfigureWarnings" /> method.
