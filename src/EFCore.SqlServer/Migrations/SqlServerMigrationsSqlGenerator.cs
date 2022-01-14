@@ -533,7 +533,8 @@ public class SqlServerMigrationsSqlGenerator : MigrationsSqlGenerator
         if (operation[SqlServerAnnotationNames.IsTemporal] as bool? == true)
         {
             var historyTableSchema = operation[SqlServerAnnotationNames.TemporalHistoryTableSchema] as string
-                ?? model?.GetDefaultSchema();
+                ?? operation.Schema;
+
             var needsExec = historyTableSchema == null;
             var subBuilder = needsExec
                 ? new MigrationCommandListBuilder(Dependencies)
@@ -1261,7 +1262,7 @@ public class SqlServerMigrationsSqlGenerator : MigrationsSqlGenerator
         {
             var historyTableName = operation[SqlServerAnnotationNames.TemporalHistoryTableName] as string;
             var historyTableSchema = operation[SqlServerAnnotationNames.TemporalHistoryTableSchema] as string
-                ?? model?.GetDefaultSchema();
+                ?? operation.Schema ?? model?.GetDefaultSchema();
             var periodStartColumnName = operation[SqlServerAnnotationNames.TemporalPeriodStartColumnName] as string;
             var periodEndColumnName = operation[SqlServerAnnotationNames.TemporalPeriodEndColumnName] as string;
 
@@ -2261,7 +2262,7 @@ public class SqlServerMigrationsSqlGenerator : MigrationsSqlGenerator
                 schema ??= model?.GetDefaultSchema();
                 var historyTableName = operation[SqlServerAnnotationNames.TemporalHistoryTableName] as string;
                 var historyTableSchema = operation[SqlServerAnnotationNames.TemporalHistoryTableSchema] as string
-                    ?? model?.GetDefaultSchema();
+                    ?? schema;
                 var periodStartColumnName = operation[SqlServerAnnotationNames.TemporalPeriodStartColumnName] as string;
                 var periodEndColumnName = operation[SqlServerAnnotationNames.TemporalPeriodEndColumnName] as string;
 

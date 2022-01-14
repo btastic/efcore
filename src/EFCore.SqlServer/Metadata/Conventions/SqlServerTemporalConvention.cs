@@ -15,8 +15,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Conventions;
 /// </remarks>
 public class SqlServerTemporalConvention : IEntityTypeAnnotationChangedConvention, ISkipNavigationForeignKeyChangedConvention
 {
-    private const string PeriodStartDefaultName = "PeriodStart";
-    private const string PeriodEndDefaultName = "PeriodEnd";
+    private const string DefaultPeriodStartName = "PeriodStart";
+    private const string DefaultPeriodEndName = "PeriodEnd";
+    private const string DefaultHistoryTableNameSuffix = "History";
 
     /// <summary>
     ///     Creates a new instance of <see cref="SqlServerTemporalConvention" />.
@@ -56,12 +57,18 @@ public class SqlServerTemporalConvention : IEntityTypeAnnotationChangedConventio
             {
                 if (entityTypeBuilder.Metadata.GetPeriodStartPropertyName() == null)
                 {
-                    entityTypeBuilder.HasPeriodStart(PeriodStartDefaultName);
+                    entityTypeBuilder.HasPeriodStart(DefaultPeriodStartName);
                 }
 
                 if (entityTypeBuilder.Metadata.GetPeriodEndPropertyName() == null)
                 {
-                    entityTypeBuilder.HasPeriodEnd(PeriodEndDefaultName);
+                    entityTypeBuilder.HasPeriodEnd(DefaultPeriodEndName);
+                }
+
+                if (entityTypeBuilder.Metadata.GetHistoryTableName() == null)
+                {
+                    var tableName = entityTypeBuilder.Metadata.GetTableName();
+                    entityTypeBuilder.UseHistoryTableName(tableName + DefaultHistoryTableNameSuffix);
                 }
 
                 foreach (var skipLevelNavigation in entityTypeBuilder.Metadata.GetSkipNavigations())
@@ -117,6 +124,23 @@ public class SqlServerTemporalConvention : IEntityTypeAnnotationChangedConventio
                 // in case another property is defined that maps to the same column
                 periodPropertyBuilder?.HasColumnName(periodPropertyName);
             }
+        }
+
+        if (name == RelationalAnnotationNames.Schema
+            && entityTypeBuilder.Metadata.IsTemporal())
+        {
+            // if table schema changes, also update the history table schema
+            entityTypeBuilder.UseHistoryTableSchema(annotation?.Value as string);
+        }
+
+        if (name == SqlServerAnnotationNames.TemporalHistoryTableName)
+        {
+            // when setting up history table (name),
+            // also by convention set up it's schema to be the same as the temporal table
+            // we have to use annotation directly, so that we don't use the default model schema
+            // in case table schema is not explicitly set
+            var tableSchemaAnnotation = entityTypeBuilder.Metadata.FindAnnotation(RelationalAnnotationNames.Schema);
+            entityTypeBuilder.UseHistoryTableSchema(tableSchemaAnnotation?.Value as string);
         }
     }
 

@@ -16,8 +16,6 @@ namespace Microsoft.EntityFrameworkCore;
 /// </remarks>
 public static class SqlServerEntityTypeExtensions
 {
-    private const string DefaultHistoryTableNameSuffix = "History";
-
     /// <summary>
     ///     Returns a value indicating whether the entity type is mapped to a memory-optimized table.
     /// </summary>
@@ -202,11 +200,7 @@ public static class SqlServerEntityTypeExtensions
             ? throw new InvalidOperationException(CoreStrings.RuntimeModelMissingData)
             : entityType[SqlServerAnnotationNames.TemporalHistoryTableName] is string historyTableName
                 ? historyTableName
-                : entityType[SqlServerAnnotationNames.IsTemporal] as bool? == true
-                    ? entityType.GetTableName() is string tableName
-                        ? tableName + DefaultHistoryTableNameSuffix
-                        : null
-                    : null;
+                : null;
 
     /// <summary>
     ///     Sets a value representing the name of the history table associated with the entity mapped to a temporal table.
@@ -252,8 +246,7 @@ public static class SqlServerEntityTypeExtensions
     public static string? GetHistoryTableSchema(this IReadOnlyEntityType entityType)
         => (entityType is RuntimeEntityType)
             ? throw new InvalidOperationException(CoreStrings.RuntimeModelMissingData)
-            : entityType[SqlServerAnnotationNames.TemporalHistoryTableSchema] as string
-            ?? entityType[RelationalAnnotationNames.Schema] as string;
+            : entityType[SqlServerAnnotationNames.TemporalHistoryTableSchema] as string;
 
     /// <summary>
     ///     Sets a value representing the schema of the history table associated with the entity mapped to a temporal table.
