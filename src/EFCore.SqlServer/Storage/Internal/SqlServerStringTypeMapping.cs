@@ -264,7 +264,7 @@ public class SqlServerStringTypeMapping : StringTypeMapping
 
         for (var j = concatStartList.Count - 1; j >= 0; j--)
         {
-            if (castApplied && j == 0)
+            if (castApplied && j >= 0)
             {
                 builder.Insert(concatStartList[j], "CAST(");
             }
