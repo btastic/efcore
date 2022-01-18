@@ -313,6 +313,7 @@ public class SqlServerStringTypeMapping : StringTypeMapping
                 {
                     lastConcatStartPoint = builder.Length;
                     concatCount = 1;
+                    castApplied = false;
                 }
             }
         }
